@@ -8,8 +8,8 @@ import {
     deleteUser
 } from "../controllers/userController.js";
 
-import { checkAuth } from "../middlewares/auth.js";
-import { validateUser } from "../middlewares/validateUser.js";
+import { checkAuth } from "../middleware/auth.js";
+import { validateUser } from "../middleware/validateUser.js";
 
 const router = express.Router();
 
