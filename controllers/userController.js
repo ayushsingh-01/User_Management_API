@@ -1,23 +1,24 @@
-let users = [];
+import {
+    createUserService,
+    getAllUsersService,
+    getUserService,
+    updateUserService,
+    deleteUserService,
+    findUserByEmailService
+} from "../services/userServices.js";
 
 
-export const createUser = (req, res) => {
+// CREATE USER
+export const createUser = async (req, res) => {
     try {
-        const { name, email } = req.body;
+        const { name, email, password, role } = req.body;
 
-        if (!name || !email) {
-            return res.status(400).json({
-                message: "Name and email are required"
-            });
-        }
-
-        const newUser = {
-            id: Date.now(),
+        const newUser = await createUserService({
             name,
-            email
-        };
-
-        users.push(newUser);
+            email,
+            password,
+            role
+        });
 
         res.status(201).json({
             message: "User created successfully",
@@ -26,35 +27,29 @@ export const createUser = (req, res) => {
 
     } catch (error) {
         res.status(500).json({
-            message: "Internal Server Error",
-            error: error.message
+            message: error.message
         });
     }
 };
 
 
-
-export const getUsers = (req, res) => {
+// GET ALL USERS
+export const getUsers = async (req, res) => {
     try {
-        res.status(200).json({
-            message: "Users fetched successfully",
-            data: users
-        });
+        const users = await getAllUsersService();
+
+        res.status(200).json(users);
+
     } catch (error) {
-        res.status(500).json({
-            message: "Internal Server Error",
-            error: error.message
-        });
+        res.status(500).json({ message: error.message });
     }
 };
 
 
-
-export const getUser = (req, res) => {
+// GET SINGLE USER
+export const getUser = async (req, res) => {
     try {
-        const { id } = req.params;
-
-        const user = users.find(u => u.id == id);
+        const user = await getUserService(req.params.id);
 
         if (!user) {
             return res.status(404).json({
@@ -62,90 +57,72 @@ export const getUser = (req, res) => {
             });
         }
 
-        res.status(200).json({
-            message: "User fetched successfully",
-            data: user
-        });
+        res.status(200).json(user);
 
     } catch (error) {
-        res.status(500).json({
-            message: "Internal Server Error",
-            error: error.message
-        });
+        res.status(500).json({ message: error.message });
     }
 };
 
 
-export const updateUser = (req, res) => {
+// UPDATE USER
+export const updateUser = async (req, res) => {
     try {
-        const { id } = req.params;
-        const { name, email } = req.body;
+        const updatedUser = await updateUserService(
+            req.params.id,
+            req.body
+        );
 
-        const user = users.find(u => u.id == id);
-
-        if (!user) {
+        if (!updatedUser) {
             return res.status(404).json({
                 message: "User not found"
             });
         }
-
-        if (name) user.name = name;
-        if (email) user.email = email;
 
         res.status(200).json({
             message: "User updated successfully",
-            data: user
+            data: updatedUser
         });
 
     } catch (error) {
-        res.status(500).json({
-            message: "Internal Server Error",
-            error: error.message
-        });
+        res.status(500).json({ message: error.message });
     }
 };
 
 
-export const deleteUser = (req, res) => {
+// DELETE USER
+export const deleteUser = async (req, res) => {
     try {
-        const { id } = req.params;
+        const deletedUser = await deleteUserService(req.params.id);
 
-        const userIndex = users.findIndex(u => u.id == id);
-
-        if (userIndex === -1) {
+        if (!deletedUser) {
             return res.status(404).json({
                 message: "User not found"
             });
         }
 
-        const deletedUser = users.splice(userIndex, 1);
-
         res.status(200).json({
-            message: "User deleted successfully",
-            data: deletedUser[0]
+            message: "User deleted successfully"
         });
 
     } catch (error) {
-        res.status(500).json({
-            message: "Internal Server Error",
-            error: error.message
-        });
+        res.status(500).json({ message: error.message });
     }
 };
 
 
-export const validateUserById = (req, res) => {
+export const findUserByEmail = async (req, res) => {
 
     try {
-        const { id } = req.body;
+        const { email } = req.body;
 
-        if (!id) {
+        if (!email) {
             return res.status(400).json({
-                message: "User ID is required"
+                message: "Email is required"
             });
         }
 
-        const user = users.find(u => u.id == id);
+        const user = await findUserByEmailService(email);
 
         if (!user) {
             return res.status(404).json({
@@ -153,15 +130,14 @@ export const validateUserById = (req, res) => {
             });
         }
 
-        return res.status(200).json({
-            message: "User is valid",
+        res.status(200).json({
+            message: "User found",
             data: user
         });
 
     } catch (error) {
         res.status(500).json({
-            message: "Internal Server Error",
-            error: error.message
+            message: error.message
         });
     }
 };
